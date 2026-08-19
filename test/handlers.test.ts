@@ -66,7 +66,7 @@ describe('Handler & Message Utilities', () => {
 
     assert.ok(text.includes('در حال ارسال پیام مخفی و ناشناس'));
     assert.ok(text.includes(`href="https://t.me/TestBot?start=${sampleToken}"`));
-    assert.equal(forceReplyPlaceholder, 'پیام مخفی خود را اینجا بنویسید...');
+    assert.equal(forceReplyPlaceholder, 'پیام خود را بنویسید...');
   });
 
   test('generates recipient delivery header in Persian', () => {

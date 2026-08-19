@@ -97,7 +97,7 @@ export function getPromptSenderMessage(botUsername: string, token: string): {
 
   return {
     text,
-    forceReplyPlaceholder: 'پیام مخفی خود را اینجا بنویسید...'
+    forceReplyPlaceholder: 'پیام خود را بنویسید...'
   };
 }
 
