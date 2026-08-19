@@ -4,10 +4,6 @@
     {
       "source": "/api/webhook",
       "destination": "/api/webhook"
-    },
-    {
-      "source": "/",
-      "destination": "/api/webhook"
     }
   ]
 }
