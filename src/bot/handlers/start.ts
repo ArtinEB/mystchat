@@ -58,7 +58,19 @@ export async function handleStartCommand(
   }
 
   // 4. User is sending a message to the recipient
-  const { text, forceReplyPlaceholder } = getPromptSenderMessage(config.telegramBotUsername, token);
+  let targetName: string | undefined;
+  try {
+    const chat = await client.getChat(decoded.userId);
+    targetName = chat.first_name;
+  } catch (error) {
+    logger.info(`Could not fetch chat profile for user ${decoded.userId}: ${error}`);
+  }
+
+  const { text, forceReplyPlaceholder } = getPromptSenderMessage(
+    config.telegramBotUsername,
+    token,
+    targetName
+  );
 
   await client.sendMessage(chatId, text, {
     reply_markup: {

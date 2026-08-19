@@ -14,12 +14,21 @@ import {
   getPrivacyMessage,
   getInvalidTokenMessage,
   getRecipientBlockedMessage,
-  getGenericErrorMessage
+  getGenericErrorMessage,
+  formatInitial
 } from '../src/bot/messages/persian.js';
 import { initCustomEmojis } from '../src/config/emojis.js';
 
 describe('Handler & Message Utilities', () => {
   const sampleToken = 'sampleToken_123';
+
+  test('correctly formats names into initial abbreviations', () => {
+    assert.equal(formatInitial('Artin'), 'A...');
+    assert.equal(formatInitial('artin'), 'A...');
+    assert.equal(formatInitial('علی'), 'ع...');
+    assert.equal(formatInitial(''), undefined);
+    assert.equal(formatInitial(undefined), undefined);
+  });
 
   test('extracts token from HTML text_link entity', () => {
     const message: TelegramMessage = {
@@ -61,12 +70,14 @@ describe('Handler & Message Utilities', () => {
     assert.ok(replyMarkup.inline_keyboard.length > 0);
   });
 
-  test('generates prompt message for sender with embedded zero-width anchor link', () => {
-    const { text, forceReplyPlaceholder } = getPromptSenderMessage('TestBot', sampleToken);
+  test('generates prompt message for sender with embedded zero-width anchor link and target initial', () => {
+    const promptWithTarget = getPromptSenderMessage('TestBot', sampleToken, 'Artin');
+    assert.ok(promptWithTarget.text.includes('در حال ارسال پیام ناشناس به <b>A...</b>'));
+    assert.ok(promptWithTarget.text.includes(`href="https://t.me/TestBot?start=${sampleToken}"`));
+    assert.equal(promptWithTarget.forceReplyPlaceholder, 'پیام خود را بنویسید...');
 
-    assert.ok(text.includes('در حال ارسال پیام مخفی و ناشناس'));
-    assert.ok(text.includes(`href="https://t.me/TestBot?start=${sampleToken}"`));
-    assert.equal(forceReplyPlaceholder, 'پیام خود را بنویسید...');
+    const promptWithoutTarget = getPromptSenderMessage('TestBot', sampleToken);
+    assert.ok(promptWithoutTarget.text.includes('در حال ارسال پیام ناشناس...'));
   });
 
   test('generates recipient delivery header in Persian', () => {

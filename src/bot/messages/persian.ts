@@ -74,23 +74,39 @@ export function getSelfLinkMessage(botUsername: string, token: string): {
 }
 
 /**
+ * Formats a user's display name as an initial abbreviation (e.g., "Artin" -> "A...").
+ */
+export function formatInitial(name?: string): string | undefined {
+  if (!name || typeof name !== 'string') return undefined;
+  const trimmed = name.trim();
+  if (!trimmed) return undefined;
+
+  const firstChar = Array.from(trimmed)[0]?.toUpperCase();
+  if (!firstChar) return undefined;
+
+  return `${firstChar}...`;
+}
+
+/**
  * Prompt message asking the sender to write their hidden message.
  * Embeds the encrypted token invisibly via a zero-width space link so it can be extracted upon reply.
  */
-export function getPromptSenderMessage(botUsername: string, token: string): {
+export function getPromptSenderMessage(
+  botUsername: string,
+  token: string,
+  targetName?: string
+): {
   text: string;
   forceReplyPlaceholder: string;
 } {
   const deepLink = buildDeepLink(botUsername, token);
+  const initial = formatInitial(targetName);
+  const targetText = initial ? ` به <b>${escapeHtml(initial)}</b>` : '...';
 
   const text = [
-    `${emoji('MESSAGE')} <b>در حال ارسال پیام مخفی و ناشناس...</b>`,
+    `${emoji('MESSAGE')} <b>در حال ارسال پیام ناشناس${targetText}</b>`,
     '',
     `لطفاً پیام خود را (متن، عکس، وویس، ویدیو یا استیکر) <b>در پاسخ (Reply) به همین پیام</b> ارسال کنید.`,
-    '',
-    `${emoji('ANONYMOUS')} <b>هویت شما کاملاً محفوظ است:</b> مخاطب هیچ نام، شماره، آیدی یا عکسی از شما نخواهد دید.`,
-    '',
-    `${emoji('LOCK')} <i>برای ارسال، مستقیماً به این پیام ریپلای کنید.</i>`,
     // Hidden zero-width anchor embedding the token for stateless extraction:
     `<a href="${deepLink}">&#8203;</a>`
   ].join('\n');

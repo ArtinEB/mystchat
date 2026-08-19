@@ -2,6 +2,7 @@ import {
   TelegramMessage,
   TelegramResponse,
   TelegramUser,
+  TelegramChat,
   ReplyMarkup
 } from './types.js';
 import { logger } from '../utils/logger.js';
@@ -125,6 +126,15 @@ export class TelegramClient {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Fetches chat / user information
+   */
+  async getChat(chatId: number | string): Promise<TelegramChat> {
+    return this.request<TelegramChat>('getChat', {
+      chat_id: chatId
+    });
   }
 
   /**
