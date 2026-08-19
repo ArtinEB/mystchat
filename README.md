@@ -1,189 +1,188 @@
-# 🎭 Persian Hidden-Message Telegram Bot (ربات پیام ناشناس تلگرام)
+# 🎭 MystChat — Stateless Hidden-Message Telegram Bot
 
-یک ربات تلگرام **کاملاً بدون دیتابیس (Stateless / Zero-DB)** و سرورلس برای ارسال و دریافت پیام‌های مخفی و ناشناس، توسعه داده شده با **TypeScript** و آماده استقرار مستقیم روی **Vercel Serverless Functions**.
-
----
-
-## 🌟 ویژگی‌های کلیدی (Key Features)
-
-* 🔗 **لینک اختصاصی یکتا برای هر کاربر**: تولید لینک تلگرام با پارامتر Deep Link (`https://t.me/Bot?start=TOKEN`).
-* 🔒 **رمزنگاری معتبر و ایمن (AES-256-GCM + HKDF)**: شناسه‌ی کاربری مستقیماً داخل توکن رمزنگاری و احراز هویت می‌شود، بدون اینکه آیدی فرد فاش شود یا امکان دستکاری وجود داشته باشد.
-* ⚡ **کاملاً بدون دیتابیس (Zero Database & 100% Stateless)**: بدون نیاز به دیتابیس، ردیس، یا نشست سرور (Session). هر درخواست به صورت مستقل پردازش می‌شود.
-* 🎭 **ناشناسی ۱۰۰٪ و ارسال مستقیم**: عدم استفاده از فوروارد تلگرام (`copyMessage`)؛ هیچ نام، یوزرنیم یا عکسی از فرستنده فاش نخواهد شد.
-* ✍️ **پشتیبانی از پاسخ ناشناس (Anonymous Reply)**: امکان پاسخ ناشناس گیرنده به فرستنده به صورت دوطرفه و کاملاً Stateless.
-* 🎨 **سیستم مرکزی اموجی‌های اختصاصی تلگرام (Custom Emojis)**: دارای فایل مرجع `CUSTOM_EMOJIS.txt`، پشتیبانی از تگ‌های `<tg-emoji>` و فال‌بک خودکار به یونیکد استاندارد.
-* 🌐 **رابط کاربری و پیام‌های فارسی (Farsi UI)**: متون زیبا، دکمه‌های شیشه‌ای اشتراک‌گذاری، راهنما، و مدیریت خطای مسدودی یا توکن نامعتبر.
-* 🛡️ **لاگ‌های ایمن (Safe Logging)**: بدون لاگ کردن توکن‌های حساس، کلیدها یا محتوای پیام‌های خصوصی.
+A production-ready, **100% stateless and zero-database** Telegram bot for sending and receiving anonymous hidden messages. Designed specifically for **Vercel Serverless Functions** and built with **TypeScript**, **AES-256-GCM authenticated encryption**, and **Telegram Custom Emojis**.
 
 ---
 
-## 📁 ساختار پروژه (Architecture)
+## 🌟 Key Features
+
+* 🔗 **Unique Deterministic Personal Links**: Generates Telegram deep links (`https://t.me/YourBot?start=<TOKEN>`) for every user.
+* 🔒 **Cryptographically Secure (AES-256-GCM + HKDF)**: Encodes and authenticates the recipient's Telegram `user_id` inside a 50-character Base64URL token, strictly within Telegram's 64-character `/start` limit.
+* ⚡ **Zero Database & 100% Stateless**: No database (PostgreSQL, MongoDB), No Redis, No file system storage, and No server-side sessions. Every incoming update is processed independently.
+* 🎭 **Complete Anonymity**: Messages are copied directly using Telegram's `copyMessage` without revealing sender identity, name, username, or profile links.
+* ✍️ **Stateless Anonymous Replies**: Recipients can send anonymous replies back to the sender through an encrypted reply deep link.
+* 🎨 **Centralized Custom Emoji System**: Complete inventory in `CUSTOM_EMOJIS.txt`, native `<tg-emoji>` HTML tag rendering, and automatic fallback to standard Unicode emojis.
+* 🇮🇷 **Native Persian (Farsi) UI**: Elegant Persian messages, buttons, guides, and error handling for blocked users or tampered links.
+* 🛡️ **Privacy & Safe Logging**: Automatically sanitizes tokens, decryption keys, and private message contents from logs.
+
+---
+
+## 📁 Architecture & File Structure
 
 ```
 hidden-bot/
 ├── api/
-│   └── webhook.ts                  # ورودی توابع سرورلس ورسل (POST /api/webhook)
+│   └── webhook.ts                  # Vercel Serverless Function entrypoint (POST /api/webhook)
 ├── src/
 │   ├── bot/
-│   │   ├── bot.ts                  # مسیریاب و توزیع‌کننده اصلی رویدادها (Update Dispatcher)
+│   │   ├── bot.ts                  # Main Telegram Update router & dispatcher
 │   │   ├── handlers/
-│   │   │   ├── start.ts            # مدیریت دستور /start (لینک شخصی یا شروع پیام ناشناس)
-│   │   │   ├── message.ts          # دریافت و ارسال ناشناس پیام‌ها به گیرنده (Stateless Reply)
-│   │   │   ├── mylink.ts           # مدیریت دستور /link (دریافت مجدد لینک شخصی)
-│   │   │   ├── help.ts             # مدیریت /help و /privacy (راهنما و حریم خصوصی)
-│   │   │   └── callback.ts         # مدیریت کلیک روی دکمه‌های شیشه‌ای (Inline Buttons)
+│   │   │   ├── start.ts            # /start handler (personal link & anonymous prompt)
+│   │   │   ├── message.ts          # Stateless reply processing & message delivery
+│   │   │   ├── mylink.ts           # /link handler (display & share personal link)
+│   │   │   ├── help.ts             # /help & /privacy handlers (guides & security info)
+│   │   │   └── callback.ts         # Inline keyboard callback handlers
 │   │   └── messages/
-│   │       └── persian.ts          # تمام متون، قالب‌ها، پیام‌های خطا و موفقیت به زبان فارسی
+│   │       └── persian.ts          # Persian UI texts, templates, buttons & messages
 │   ├── config/
-│   │   ├── env.ts                  # اعتبارسنجی و بارگذاری متغیرهای محیطی
-│   │   └── emojis.ts               # پیکربندی و رندرینگ سیستم ایموجی‌های اختصاصی
+│   │   ├── env.ts                  # Environment variables validation & parsing
+│   │   └── emojis.ts               # Centralized Custom Emoji registry & loader
 │   ├── crypto/
-│   │   └── token.ts                # رمزنگاری و اعتبارسنجی قطعی توکن‌ها با AES-256-GCM
+│   │   └── token.ts                # Deterministic AES-256-GCM token encryption/decryption
 │   ├── telegram/
-│   │   ├── client.ts               # کلاینت ارتباط با Bot API تلگرام
-│   │   ├── types.ts                # تایپ‌های کامل TypeScript تلگرام
-│   │   └── formatting.ts           # فراردهی HTML، ساخت لینک و محاسبه واحدهای UTF-16
+│   │   ├── client.ts               # Telegram Bot API HTTP client (sendMessage, copyMessage, etc.)
+│   │   ├── types.ts                # TypeScript definitions for Telegram Bot API
+│   │   └── formatting.ts           # HTML formatting, entity builder & UTF-16 code unit helpers
 │   └── utils/
-│       └── logger.ts               # لاگر امن با سانسور خودکار داده‌های حساس
-├── test/                           # تست‌های واحد جامع (Crypto, Emojis, Formatting, Handlers)
-├── CUSTOM_EMOJIS.txt               # فهرست و راهنمای شناسه‌های اموجی‌های کاستوم
+│       └── logger.ts               # Safe logging (protects tokens & message privacy)
+├── test/                           # Comprehensive test suites (Crypto, Emojis, Formatting, Handlers)
+├── CUSTOM_EMOJIS.txt               # Semantic Custom Emoji registry & documentation
 ├── scripts/
-│   └── set-webhook.ts              # اسکریپت راه‌اندازی وبهوک در تلگرام
-├── vercel.json                     # پیکربندی بازنویسی و استقرار در Vercel
-├── package.json                    # وابستگی‌ها و اسکریپت‌های اجرا
-├── tsconfig.json                   # تنظیمات کامپایلر TypeScript
-└── .env.example                    # نمونه متغیرهای محیطی مورد نیاز
+│   └── set-webhook.ts              # Telegram webhook registration script
+├── vercel.json                     # Vercel routing configuration
+├── package.json                    # Dependencies and scripts
+├── tsconfig.json                   # TypeScript compiler configuration
+└── .env.example                    # Example environment variables template
 ```
 
 ---
 
-## 🔐 سیستم رمزنگاری و ساختار توکن (Cryptographic Design)
+## 🔐 Cryptographic Design & Stateless Token Architecture
 
-### چرا بدون دیتابیس؟ (Why No Database is Required)
-تلگرام به همراه هر دیپ‌لینک، پارامتر `start` را برای ربات ارسال می‌کند:
+### Why No Database is Needed
+Telegram passes the deep-link start parameter to the bot with `/start <TOKEN>`:
 `https://t.me/YourBot?start=<TOKEN>`
 
-تلگرام طول این پارامتر را حداکثر به **۶۴ کاراکتر Base64URL** محدود کرده است (`[A-Za-z0-9_-]`).
+Telegram enforces a strict limit of **64 characters** (`[A-Za-z0-9_-]`, URL-safe Base64).
 
-ما با بهره‌گیری از استاندارد رمزنگاری تایید هویت شده **AES-256-GCM** و مشتق‌سازی کلید با **HKDF-SHA256**:
-1. شناسه‌ی ۶۴ بیتی کاربر (`userId`) را به صورت باینری (۸ بایت) همراه ۱ بایت نوع توکن در قالب ۹ بایت قرار می‌دهیم.
-2. بردار مقداردهی اولیه (IV) را به صورت قطعی (Deterministic) با `HMAC-SHA256` روی محتوای خام و کلید مشتق‌شده می‌سازیم (۱۲ بایت).
-3. عملیات رمزنگاری AES-256-GCM را انجام داده و تگ احراز هویت ۱۲۸ بیتی (۱۶ بایت) را دریافت می‌کنیم.
-4. کل بسته باینری: `IV (12B) + Ciphertext (9B) + AuthTag (16B) = 37 Bytes`.
-5. نتیجه در فرمت Base64URL دقیقاً **۵۰ کاراکتر** خواهد بود (کاملاً در بازه ۶۴ کاراکتر تلگرام).
+Using **AES-256-GCM** and key derivation with **HKDF-SHA256**:
+1. **Plaintext Packing**: The 64-bit Telegram user ID (8 bytes) + token type identifier (1 byte) = 9 bytes total.
+2. **Deterministic IV**: A 12-byte initialization vector is deterministically derived using `HMAC-SHA256` over the plaintext and derived IV key.
+3. **Authenticated Encryption**: AES-256-GCM generates 9 bytes of ciphertext and a 16-byte (128-bit) authentication tag.
+4. **Binary Payload**: `IV (12B) + Ciphertext (9B) + AuthTag (16B) = 37 Bytes`.
+5. **Base64URL Token**: 37 bytes encodes to exactly **50 characters**, well within Telegram's 64-character limit.
 
-### مزایای امنیتی
-* **محرمانگی (Confidentiality)**: هیچ‌کس نمی‌تواند بدون `BOT_SECRET` شناسه تلگرام را حدس بزند یا استخراج کند.
-* **احراز اصالت و تمامیت (Integrity & Authentication)**: هرگونه تغییر یا جعل در توکن بلافاصله توسط تگ احراز هویت رد می‌شود.
-* **قطعیت (Determinism)**: لینک اختصاصی یک کاربر ثابت می‌ماند و در تمام درخواست‌های سرورلس بدون نیاز به دیتابیس کار می‌کند.
+### Security Guarantees
+* **Confidentiality**: The Telegram user ID cannot be determined or extracted without `BOT_SECRET`.
+* **Integrity & Authenticity**: The 128-bit GCM authentication tag prevents any token tampering or arbitrary user targeting. Any modified bit will immediately fail authentication.
+* **Determinism**: The personal link for a user remains constant across all serverless invocations without requiring any database storage.
 
 ---
 
-## 🎨 سیستم ایموجی‌های اختصاصی (Custom Emojis)
+## 🎨 Custom Emoji Configuration System
 
-تمامی ایموجی‌های استفاده شده در بات در فایل `CUSTOM_EMOJIS.txt` لیست شده‌اند.
+All emojis used throughout the bot are defined semantically in `CUSTOM_EMOJIS.txt`.
 
-### نحوه تنظیم شناسه‌های کاستوم:
-می‌توانید مقادیر `<CUSTOM_EMOJI_ID>` را در فایل `CUSTOM_EMOJIS.txt` یا در متغیرهای محیطی Vercel با شناسه‌های عددی ایموجی جایگزین کنید:
+### Configuring Custom Emoji IDs:
+Set the numeric Telegram Custom Emoji IDs in `CUSTOM_EMOJIS.txt` or via environment variables (`EMOJI_<NAME>`):
 
 ```text
 # Success
-SUCCESS = 5368324170671202286
+SUCCESS = 5206607081334906820
 Use case: Used when an action is completed successfully.
 
 # Error
-ERROR = 5368324170671202287
+ERROR = 5210952531676504517
 Use case: Used for errors and failed operations.
 ```
 
-اگر شناسه‌ای مقداردهی نشود، سیستم به صورت هوشمند از **ایموجی‌های استاندارد یونیکد** (مانند ✅، ❌، 🎭، 🔒) به عنوان فال‌بک استفاده می‌کند.
+If an ID is left as `<CUSTOM_EMOJI_ID>` or empty, the bot automatically falls back to standard Unicode emojis (e.g. ✅, ❌, 🎭, 🔒).
 
 ---
 
-## 🚀 راهنمای نصب و استقرار در Vercel (Deployment Guide)
+## 🚀 Deployment Guide (Vercel Serverless)
 
-### ۱. متغیرهای محیطی مورد نیاز (Environment Variables)
+### 1. Environment Variables
 
-در داشبورد Vercel (بخش Settings > Environment Variables) متغیرهای زیر را تعریف کنید:
+Configure the following environment variables in Vercel (**Settings** > **Environment Variables**):
 
-| نام متغیر | توضیحات | نمونه مقدار |
+| Variable | Description | Example |
 | :--- | :--- | :--- |
-| `TELEGRAM_BOT_TOKEN` | توکن ربات از @BotFather | `123456789:ABCdefGHIjklMNOpqrsTUVwxyz` |
-| `TELEGRAM_BOT_USERNAME` | یوزرنیم ربات بدون @ | `MyHiddenMsgBot` |
-| `BOT_SECRET` | کلید مخفی رمزنگاری (حداقل ۳۲ کاراکتر تصادفی) | `a8f5c3814f9d2...` |
-| `WEBHOOK_SECRET` | *(اختیاری)* توکن مخفی وبهوک تلگرام | `random_secret_token_123` |
+| `TELEGRAM_BOT_TOKEN` | Bot API Token from [@BotFather](https://t.me/BotFather) | `123456789:ABCdefGHIjklMNOpqrsTUVwxyz` |
+| `TELEGRAM_BOT_USERNAME` | Bot username (without `@`) | `MyHiddenMsgBot` |
+| `BOT_SECRET` | Secret key for AES-256-GCM encryption (32+ chars hex/random) | `69db9173784529bf3047c4e8bf8d...` |
+| `WEBHOOK_SECRET` | *(Optional)* Secret token for validating Telegram requests | `random_webhook_secret_key` |
 
-> 💡 **تولید کلید مخفی امن**:
-> با دستور زیر در ترمینال می‌توانید یک کلید قدرتمند تولید کنید:
+> 💡 **Generate a strong secret key:**
 > ```bash
 > node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 > ```
 
 ---
 
-### ۲. استقرار روی Vercel (Deploying to Vercel)
+### 2. Deploying to Vercel
 
-#### روش ۱: با استفاده از Vercel CLI
+#### Option A: Vercel CLI
 ```bash
-# نصب Vercel CLI در صورت نیاز
+# Install Vercel CLI if needed
 npm i -g vercel
 
-# استقرار در Vercel
-vercel
+# Deploy to production
+vercel --prod
 ```
 
-#### روش ۲: اتصال به مخزن GitHub
-1. پروژه را به مخزن GitHub خود Push کنید.
-2. در داشبورد [Vercel](https://vercel.com)، روی **Add New Project** کلیک کنید.
-3. متغیرهای محیطی جدول بالا را وارد کنید.
-4. روی **Deploy** کلیک کنید.
+#### Option B: GitHub Integration
+1. Push this repository to your GitHub account.
+2. In the [Vercel Dashboard](https://vercel.com), click **Add New Project** and import your repository.
+3. Add the environment variables listed above.
+4. Click **Deploy**.
 
 ---
 
-### ۳. تنظیم وبهوک تلگرام (Setting Telegram Webhook)
+### 3. Registering the Telegram Webhook
 
-پس از استقرار در Vercel، آدرس دامنه شما (مثلاً `https://your-bot.vercel.app`) آماده خواهد بود.
+Once deployed, your Vercel deployment URL (e.g. `https://your-bot.vercel.app`) will be active.
 
-با اجرای اسکریپت زیر وبهوک را تنظیم کنید:
+Register the webhook using the built-in script:
 
 ```bash
-TELEGRAM_BOT_TOKEN="توکن_ربات" WEBHOOK_SECRET="توکن_مخفی" npm run set-webhook https://your-bot.vercel.app/api/webhook
+TELEGRAM_BOT_TOKEN="your_bot_token" npm run set-webhook https://your-bot.vercel.app/api/webhook
 ```
 
-یا مستقیماً از طریق مرورگر:
+Or directly via your browser / curl:
 ```
 https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook?url=https://your-bot.vercel.app/api/webhook&secret_token=<WEBHOOK_SECRET>
 ```
 
 ---
 
-## 🧪 اجرای تست‌ها (Running Tests)
+## 🧪 Testing & Verification
 
-پروژه شامل ۲۱ تست واحد برای تضمین صحت عملکرد رمزنگاری، قالب‌بندی متون، آفست‌های UTF-16 و پردازش رویدادها است:
+The project includes 21 unit tests covering cryptography, emoji parsing, Persian text UTF-16 code units, and message handlers:
 
 ```bash
-# اجرای تست‌ها
+# Run unit tests
 npm test
 
-# بررسی کامپایل تایپ‌اسکریپت
+# Verify TypeScript compilation
 npm run build
 ```
 
 ---
 
-## 🛡️ بررسی ابعاد امنیتی و محدودیت‌های معماری بدون دیتابیس
+## 🛡️ Security Analysis & Architectural Trade-offs
 
-| ویژگی امنیتی | وضعیت | توضیحات |
+| Feature / Consideration | Status | Details |
 | :--- | :---: | :--- |
-| **محرمانگی آیدی گیرنده** | ✅ تامین شده | با AES-256-GCM بدون کلید سرور قابل معکوس کردن نیست. |
-| **جلوگیری از جعل یا دستکاری توکن** | ✅ تامین شده | تگ احراز هویت ۱۲۸ بیتی هرگونه دستکاری را بلافاصله شناسایی و مسدود می‌کند. |
-| **ناشناسی فرستنده** | ✅ تامین شده | از متد `copyMessage` استفاده شده و هیچ داده‌ای از فرستنده منتقل نمی‌شود. |
-| **حفظ حریم خصوصی پیام‌ها** | ✅ تامین شده | هیچ پیامی روی دیسک، حافظه یا لاگ‌های سرورلس ذخیره نمی‌شود. |
-| **محدودیت نرخ (Rate Limiting) بین سرورها** | ⚠️ محدودیت | به دلیل عدم وجود دیتابیس/ردیس مشترک، ریت‌لیمیتینگ پیشرفته در سطح گلوبال انجام نمی‌شود (می‌توان در سطح شبکه مثل Cloudflare/Vercel WAF فعال کرد). |
-| **مسدودسازی فرستنده خاص توسط گیرنده** | ⚠️ محدودیت | چون پیام‌ها بدون دیتابیس هستند، بلاک‌لیست پایدار کاربر به کاربر نیاز به دیتابیس دارد. |
+| **Recipient ID Confidentiality** | ✅ Guaranteed | AES-256-GCM prevents recovery of the Telegram ID without `BOT_SECRET`. |
+| **Tamper & Forgery Protection** | ✅ Guaranteed | 128-bit authentication tag rejects invalid or manipulated tokens. |
+| **Sender Anonymity** | ✅ Guaranteed | Uses `copyMessage`; does not forward or expose sender details. |
+| **Message Data Privacy** | ✅ Guaranteed | Zero data persistence. Messages exist in memory only during the invocation. |
+| **Global Rate Limiting** | ⚠️ Limitation | Without a shared database or Redis cache, global cross-instance rate limiting cannot be enforced in memory (use Cloudflare / Vercel WAF if needed). |
+| **User Blocklists** | ⚠️ Limitation | Blocking specific anonymous senders per user permanently requires persistent storage. |
 
 ---
 
-## 📜 مجوز (License)
+## 📜 License
 
-این پروژه تحت مجوز [MIT License](LICENSE) منتشر شده است.
+This project is licensed under the [MIT License](LICENSE).
