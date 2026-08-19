@@ -19,7 +19,7 @@ import {
 import { initCustomEmojis } from '../src/config/emojis.js';
 
 describe('Handler & Message Utilities', () => {
-  const sampleToken = 'c2FtcGxlX3Rva2VuX3dpdGhfNTBfY2hhcnNfZm9yX3Rlc3Rpbmc';
+  const sampleToken = 'sampleToken_123';
 
   test('extracts token from HTML text_link entity', () => {
     const message: TelegramMessage = {

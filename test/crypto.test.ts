@@ -18,11 +18,11 @@ describe('Cryptographic Token System (Stateless AES-256-GCM)', () => {
     assert.equal(token1, token2, 'Tokens generated with the same input must be identical (deterministic)');
   });
 
-  test('token length satisfies Telegram 64-character start parameter limit', () => {
+  test('token length is compact and exactly 15 characters', () => {
     const token = generateUserToken(testUserId, 'direct', secret);
 
-    assert.ok(token.length <= 64, `Token length (${token.length}) must be <= 64 characters`);
-    assert.match(token, /^[A-Za-z0-9_-]+$/, 'Token must be URL-safe Base64URL characters');
+    assert.equal(token.length, 15, `Token length (${token.length}) must be exactly 15 characters`);
+    assert.match(token, /^[A-Za-z0-9_-]{15}$/, 'Token must be 15 URL-safe Base64URL characters');
   });
 
   test('correctly decodes direct token and recovers user ID', () => {

@@ -23,14 +23,14 @@ export function extractTokenFromMessage(message: TelegramMessage): string | null
   const entities = [...(message.entities || []), ...(message.caption_entities || [])];
   for (const entity of entities) {
     if (entity.type === 'text_link' && entity.url) {
-      const match = entity.url.match(/[?&]start=([A-Za-z0-9_-]{32,64})/);
+      const match = entity.url.match(/[?&]start=([A-Za-z0-9_-]{10,64})/);
       if (match) return match[1];
     }
   }
 
   // 2. Check raw text
   const text = message.text || message.caption || '';
-  const textMatch = text.match(/(?:start=|\/start\s+)([A-Za-z0-9_-]{32,64})/);
+  const textMatch = text.match(/(?:start=|\/start\s+)([A-Za-z0-9_-]{10,64})/);
   if (textMatch) return textMatch[1];
 
   return null;

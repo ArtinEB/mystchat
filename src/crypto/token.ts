@@ -28,33 +28,92 @@ export class TokenTamperedError extends TokenError {
   }
 }
 
-const TYPE_DIRECT_BYTE = 0x01;
-const TYPE_REPLY_BYTE = 0x02;
-
-const PLAINTEXT_LENGTH = 9; // 1 byte type + 8 bytes uint64 userId
-const IV_LENGTH = 12; // 12 bytes standard AES-GCM IV
-const TAG_LENGTH = 16; // 16 bytes standard GCM auth tag
-const TOTAL_TOKEN_BYTES = IV_LENGTH + PLAINTEXT_LENGTH + TAG_LENGTH; // 37 bytes -> 50 base64url chars
+const CIPHER_BLOCK_BYTES = 8; // 64-bit block for user ID & type
+const MAC_BYTES = 3; // 24-bit authentication tag
+const TOTAL_TOKEN_BYTES = CIPHER_BLOCK_BYTES + MAC_BYTES; // 11 bytes -> exactly 15 Base64URL characters
 
 /**
- * Derives encryption key and IV HMAC key from master secret using HKDF-SHA256.
+ * Derives Feistel round keys and MAC key from master secret using HKDF-SHA256.
  */
-function deriveKeys(masterSecret: string): { encKey: Buffer; ivSaltKey: Buffer } {
+function deriveKeys(masterSecret: string): {
+  roundKeys: [Buffer, Buffer, Buffer, Buffer];
+  authKey: Buffer;
+} {
   const masterKey = crypto.createHash('sha256').update(masterSecret, 'utf-8').digest();
 
-  const encKey = Buffer.from(
-    crypto.hkdfSync('sha256', masterKey, '', 'tg-hidden-msg-aes-enc-v1', 32)
-  );
-  const ivSaltKey = Buffer.from(
-    crypto.hkdfSync('sha256', masterKey, '', 'tg-hidden-msg-iv-v1', 32)
-  );
+  const k1 = Buffer.from(crypto.hkdfSync('sha256', masterKey, '', 'tg-feistel-k1', 32));
+  const k2 = Buffer.from(crypto.hkdfSync('sha256', masterKey, '', 'tg-feistel-k2', 32));
+  const k3 = Buffer.from(crypto.hkdfSync('sha256', masterKey, '', 'tg-feistel-k3', 32));
+  const k4 = Buffer.from(crypto.hkdfSync('sha256', masterKey, '', 'tg-feistel-k4', 32));
+  const authKey = Buffer.from(crypto.hkdfSync('sha256', masterKey, '', 'tg-feistel-auth', 32));
 
-  return { encKey, ivSaltKey };
+  return { roundKeys: [k1, k2, k3, k4], authKey };
 }
 
 /**
- * Encodes and encrypts a Telegram User ID into a deterministic, authenticated Base64URL token.
- * Output fits well within Telegram's 64-character start parameter limit (exactly 50 chars).
+ * 32-bit round function using HMAC-SHA256.
+ */
+function roundFunction(subKey: Buffer, halfBlock: number): number {
+  const buf = Buffer.allocUnsafe(4);
+  buf.writeUInt32BE(halfBlock >>> 0, 0);
+  const hash = crypto.createHmac('sha256', subKey).update(buf).digest();
+  return hash.readUInt32BE(0);
+}
+
+/**
+ * 4-round Feistel permutation on a 64-bit integer.
+ */
+function feistelEncrypt(value: bigint, roundKeys: [Buffer, Buffer, Buffer, Buffer]): Buffer {
+  const block = Buffer.allocUnsafe(8);
+  block.writeBigUInt64BE(value, 0);
+
+  let l = block.readUInt32BE(0);
+  let r = block.readUInt32BE(4);
+
+  for (let i = 0; i < 4; i++) {
+    const f = roundFunction(roundKeys[i], r);
+    const nextL = r;
+    const nextR = (l ^ f) >>> 0;
+    l = nextL;
+    r = nextR;
+  }
+
+  const out = Buffer.allocUnsafe(8);
+  out.writeUInt32BE(l, 0);
+  out.writeUInt32BE(r, 4);
+  return out;
+}
+
+/**
+ * Decrypts a 64-bit block using reversed Feistel rounds.
+ */
+function feistelDecrypt(block: Buffer, roundKeys: [Buffer, Buffer, Buffer, Buffer]): bigint {
+  let l = block.readUInt32BE(0);
+  let r = block.readUInt32BE(4);
+
+  for (let i = 3; i >= 0; i--) {
+    const prevR = l;
+    const f = roundFunction(roundKeys[i], prevR);
+    const prevL = (r ^ f) >>> 0;
+    l = prevL;
+    r = prevR;
+  }
+
+  const out = Buffer.allocUnsafe(8);
+  out.writeUInt32BE(l, 0);
+  out.writeUInt32BE(r, 4);
+  return out.readBigUInt64BE(0);
+}
+
+/**
+ * Computes truncated 24-bit HMAC authentication tag.
+ */
+function computeMac(authKey: Buffer, ciphertext: Buffer): Buffer {
+  return crypto.createHmac('sha256', authKey).update(ciphertext).digest().subarray(0, MAC_BYTES);
+}
+
+/**
+ * Encodes and encrypts a Telegram User ID into a compact 15-character Base64URL token.
  */
 export function generateUserToken(
   userId: number,
@@ -65,30 +124,26 @@ export function generateUserToken(
     throw new Error(`Invalid userId provided for token generation: ${userId}`);
   }
 
-  const { encKey, ivSaltKey } = deriveKeys(secret);
+  const { roundKeys, authKey } = deriveKeys(secret);
 
-  // 1. Pack Plaintext: [1 byte type, 8 bytes uint64 BE userId]
-  const plaintext = Buffer.alloc(PLAINTEXT_LENGTH);
-  plaintext.writeUInt8(type === 'direct' ? TYPE_DIRECT_BYTE : TYPE_REPLY_BYTE, 0);
-  plaintext.writeBigUInt64BE(BigInt(userId), 1);
+  // Pack type into MSB (bit 63): 0 for direct, 1 for reply
+  const typeBit = type === 'reply' ? 1n : 0n;
+  const packed = (BigInt(userId) & 0x7FFFFFFFFFFFFFFFn) | (typeBit << 63n);
 
-  // 2. Deterministic IV: HMAC-SHA256 of plaintext sliced to 12 bytes
-  const iv = crypto.createHmac('sha256', ivSaltKey).update(plaintext).digest().subarray(0, IV_LENGTH);
+  // Encrypt packed 64-bit integer
+  const ciphertext = feistelEncrypt(packed, roundKeys);
 
-  // 3. Encrypt using AES-256-GCM
-  const cipher = crypto.createCipheriv('aes-256-gcm', encKey, iv);
-  const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
-  const authTag = cipher.getAuthTag();
+  // Compute 24-bit authentication tag
+  const mac = computeMac(authKey, ciphertext);
 
-  // 4. Combine payload: IV (12) + Ciphertext (9) + Tag (16) = 37 bytes
-  const payload = Buffer.concat([iv, ciphertext, authTag]);
+  // Combine: 8 bytes ciphertext + 3 bytes MAC = 11 bytes (15 Base64URL chars)
+  const payload = Buffer.concat([ciphertext, mac]);
 
-  // 5. Encode as Base64URL (no padding, url-safe alphanumeric + '-' and '_')
   return payload.toString('base64url');
 }
 
 /**
- * Decrypts and authenticates a token, recovering the recipient's Telegram user ID.
+ * Decrypts and authenticates a compact 15-character token, recovering the recipient's Telegram user ID.
  * Throws TokenError if invalid or tampered.
  */
 export function decodeUserToken(token: string, secret: string): DecodedToken {
@@ -97,12 +152,8 @@ export function decodeUserToken(token: string, secret: string): DecodedToken {
   }
 
   const trimmed = token.trim();
-  // Quick length validation (Base64url of 37 bytes is 50 chars)
-  if (trimmed.length !== 50 && trimmed.length !== 48 && trimmed.length !== 52) {
-    // Check if within reasonable bounds
-    if (trimmed.length > 64 || trimmed.length < 32) {
-      throw new InvalidTokenError('Token length is invalid for start parameter');
-    }
+  if (trimmed.length !== 15) {
+    throw new InvalidTokenError(`Token length is invalid: expected 15 characters, got ${trimmed.length}`);
   }
 
   let payload: Buffer;
@@ -116,40 +167,26 @@ export function decodeUserToken(token: string, secret: string): DecodedToken {
     throw new InvalidTokenError(`Invalid token payload length: expected ${TOTAL_TOKEN_BYTES} bytes, got ${payload.length}`);
   }
 
-  const { encKey, ivSaltKey } = deriveKeys(secret);
+  const { roundKeys, authKey } = deriveKeys(secret);
 
-  const iv = payload.subarray(0, IV_LENGTH);
-  const ciphertext = payload.subarray(IV_LENGTH, IV_LENGTH + PLAINTEXT_LENGTH);
-  const authTag = payload.subarray(IV_LENGTH + PLAINTEXT_LENGTH, TOTAL_TOKEN_BYTES);
+  const ciphertext = payload.subarray(0, CIPHER_BLOCK_BYTES);
+  const providedMac = payload.subarray(CIPHER_BLOCK_BYTES, TOTAL_TOKEN_BYTES);
 
-  let plaintext: Buffer;
-  try {
-    const decipher = crypto.createDecipheriv('aes-256-gcm', encKey, iv);
-    decipher.setAuthTag(authTag);
-    plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-  } catch {
-    throw new TokenTamperedError('Failed to decrypt token: authentication tag mismatch or corrupted data');
+  const expectedMac = computeMac(authKey, ciphertext);
+  if (!crypto.timingSafeEqual(expectedMac, providedMac)) {
+    throw new TokenTamperedError('Token authentication failed or token has been tampered with');
   }
 
-  if (plaintext.length !== PLAINTEXT_LENGTH) {
-    throw new TokenTamperedError('Decrypted plaintext length is invalid');
-  }
+  const packed = feistelDecrypt(ciphertext, roundKeys);
 
-  // Verify that IV matches the deterministic HMAC
-  const expectedIv = crypto.createHmac('sha256', ivSaltKey).update(plaintext).digest().subarray(0, IV_LENGTH);
-  if (!crypto.timingSafeEqual(iv, expectedIv)) {
-    throw new TokenTamperedError('Token IV verification failed');
-  }
-
-  // Parse type and userId
-  const typeByte = plaintext.readUInt8(0);
-  const rawUserId = plaintext.readBigUInt64BE(1);
+  const typeBit = (packed >> 63n) & 1n;
+  const rawUserId = packed & 0x7FFFFFFFFFFFFFFFn;
 
   if (rawUserId <= 0n || rawUserId > BigInt(Number.MAX_SAFE_INTEGER)) {
     throw new InvalidTokenError('Decrypted userId out of safe integer range');
   }
 
-  const type: TokenType = typeByte === TYPE_REPLY_BYTE ? 'reply' : 'direct';
+  const type: TokenType = typeBit === 1n ? 'reply' : 'direct';
 
   return {
     userId: Number(rawUserId),
