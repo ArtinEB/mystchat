@@ -56,7 +56,7 @@ describe('Handler & Message Utilities', () => {
   test('generates welcome message in Persian with personal link', () => {
     const { text, replyMarkup } = getWelcomeMessage('TestBot', sampleToken);
 
-    assert.ok(text.includes('به ربات پیام ناشناس و مخفی خوش آمدید!'));
+    assert.ok(text.includes('به ربات پیام ناشناس MystChat خوش آمدید!'));
     assert.ok(text.includes('https://t.me/TestBot?start=' + sampleToken));
     assert.ok(replyMarkup.inline_keyboard.length > 0);
   });
@@ -71,8 +71,7 @@ describe('Handler & Message Utilities', () => {
 
   test('generates recipient delivery header in Persian', () => {
     const header = getRecipientDeliveryHeader();
-    assert.ok(header.includes('یک پیام مخفی جدید داری!'));
-    assert.ok(header.includes('بدون افشای هویت فرستنده'));
+    assert.ok(header.includes('یک پیام جدید داری!'));
   });
   test('inline keyboard buttons have icon_custom_emoji_id set and no HTML in text', () => {
     initCustomEmojis();

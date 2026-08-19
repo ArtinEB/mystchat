@@ -14,26 +14,20 @@ export function getWelcomeMessage(botUsername: string, token: string): {
   const shareUrl = buildShareLink(link, shareText);
 
   const text = [
-    `${emoji('SPARKLES')} <b>به ربات پیام ناشناس و مخفی خوش آمدید!</b>`,
+    `${emoji('SPARKLES')} <b>به ربات پیام ناشناس MystChat خوش آمدید!</b>`,
     '',
     `${emoji('LINK')} <b>لینک اختصاصی شما:</b>`,
     `<code>${link}</code>`,
     '',
     `${emoji('INFO')} هر کاربری این لینک را باز کند می‌تواند بدون اینکه هویت، نام یا یوزرنیم او فاش شود، برای شما پیام مخفی ارسال کند.`,
     '',
-    `${emoji('SEND')} این لینک را در بیو اینستاگرام، کانال، گروه یا استوری قرار دهید تا دوستانتان برایتان پیام بفرستند.`,
-    '',
-    `${emoji('LOCK')} <i>تمامی پیام‌ها به صورت ۱۰۰٪ امن، ناشناس و مستقیم تحویل داده می‌شوند.</i>`
+    `${emoji('LOCK')} تمامی پیام‌ها به صورت ۱۰۰٪ امن، ناشناس و مستقیم تحویل داده می‌شوند.`
   ].join('\n');
 
   const replyMarkup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
         inlineButton('SHARE', 'اشتراک‌گذاری با دوستان', { url: shareUrl })
-      ],
-      [
-        inlineButton('COPY', 'کپی لینک اختصاصی', { callback_data: `copy_link:${token}` }),
-        inlineButton('REFRESH', 'دریافت مجدد لینک', { callback_data: 'refresh_link' })
       ],
       [
         inlineButton('HELP', 'راهنمای استفاده', { callback_data: 'show_help' }),
@@ -111,11 +105,7 @@ export function getPromptSenderMessage(botUsername: string, token: string): {
  * Message header attached when delivering an anonymous message to the recipient.
  */
 export function getRecipientDeliveryHeader(): string {
-  return [
-    `${emoji('INBOX')} <b>یک پیام مخفی جدید داری!</b>`,
-    '',
-    `${emoji('ANONYMOUS')} <i>این پیام به صورت کاملاً ناشناس و بدون افشای هویت فرستنده ارسال شده است.</i>`
-  ].join('\n');
+  return `${emoji('INBOX')} <b>یک پیام جدید داری!</b>`;
 }
 
 /**
@@ -148,22 +138,14 @@ export function getSenderSuccessMessage(botUsername: string, senderToken?: strin
   text: string;
   replyMarkup?: InlineKeyboardMarkup;
 } {
-  const text = [
-    `${emoji('SUCCESS')} <b>پیام مخفی شما با موفقیت ارسال شد!</b>`,
-    '',
-    `${emoji('SHIELD')} پیام شما بدون فاش شدن هیچ‌گونه اطلاعات هویتی تحویل گیرنده داده شد.`
-  ].join('\n');
+  const text = `${emoji('SUCCESS')} <b>پیام شما با موفقیت ارسال شد!</b>`;
 
   let replyMarkup: InlineKeyboardMarkup | undefined;
   if (senderToken) {
-    const ownLink = buildDeepLink(botUsername, senderToken);
-    const shareUrl = buildShareLink(ownLink, '🎭 برای من پیام ناشناس بفرست!');
-
     replyMarkup = {
       inline_keyboard: [
         [
-          inlineButton('LINK', 'دریافت لینک اختصاصی خودم', { callback_data: 'my_link' }),
-          inlineButton('SHARE', 'اشتراک لینک من', { url: shareUrl })
+          inlineButton('LINK', 'دریافت لینک اختصاصی من', { callback_data: 'my_link' })
         ]
       ]
     };
@@ -277,7 +259,7 @@ export function getPrivacyMessage(): {
     `این ربات بر روی سرورهای ابری سرورلس اجرا می‌شود و هیچ‌گونه دیتابیس یا ذخیره‌سازی محلی ندارد. پیام‌های شما بلافاصله پس از ارسال از حافظه حذف می‌شوند.`,
     '',
     `${emoji('ANONYMOUS')} <b>ناشناسی ۱۰۰٪:</b>`,
-    `هویت فرستنده (نام، نام خانوادگی، آیدی عددی و یوزرنیم) به هیچ عنوان به گیرنده نمایش داده نمی‌شود و پیام‌ها فوروارد نمی‌شوند (ارسال مستقیم).`,
+    `هویت فرستنده (نام، آیدی عددی و یوزرنیم) به هیچ عنوان به گیرنده نمایش داده نمی‌شود و پیام‌ها فوروارد نمی‌شوند (ارسال مستقیم).`,
     '',
     `${emoji('LOCK')} <b>رمزنگاری پیشرفته توکن‌ها (AES-256-GCM):</b>`,
     `لینک‌های اختصاصی با استانداردهای قدرتمند رمزنگاری احراز هویت شده ساخته شده‌اند و هیچ فردی امکان دستکاری یا هدف‌گیری حساب‌های دیگر را ندارد.`
