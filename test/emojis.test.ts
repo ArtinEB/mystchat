@@ -7,6 +7,7 @@ import {
   EmojiSemanticName,
   emoji,
   getFallbackEmoji,
+  buttonEmoji,
   initCustomEmojis
 } from '../src/config/emojis.js';
 
@@ -40,12 +41,14 @@ describe('Custom Telegram Emoji Configuration System', () => {
     );
   });
 
-  test('getFallbackEmoji returns valid unicode emoji for any semantic name', () => {
+  test('buttonEmoji returns plain unicode emoji without HTML tags even when custom emoji is registered', () => {
+    initCustomEmojis();
     const semanticNames = Object.keys(DEFAULT_UNICODE_FALLBACKS) as EmojiSemanticName[];
     for (const name of semanticNames) {
-      const fallback = getFallbackEmoji(name);
-      assert.ok(fallback && fallback.length > 0, `Fallback for ${name} must not be empty`);
-      assert.equal(fallback, DEFAULT_UNICODE_FALLBACKS[name]);
+      const btnIcon = buttonEmoji(name);
+      assert.ok(btnIcon && btnIcon.length > 0);
+      assert.ok(!btnIcon.includes('<'), `Button emoji for ${name} must not contain HTML tags`);
+      assert.equal(btnIcon, DEFAULT_UNICODE_FALLBACKS[name]);
     }
   });
 });

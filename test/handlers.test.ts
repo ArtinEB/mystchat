@@ -5,8 +5,15 @@ import { TelegramMessage } from '../src/telegram/types.js';
 import {
   getWelcomeMessage,
   getPromptSenderMessage,
-  getRecipientDeliveryHeader
+  getRecipientDeliveryHeader,
+  getSelfLinkMessage,
+  getRecipientDeliveryMarkup,
+  getSenderSuccessMessage,
+  getNoReplyGuidanceMessage,
+  getHelpMessage,
+  getPrivacyMessage
 } from '../src/bot/messages/persian.js';
+import { initCustomEmojis } from '../src/config/emojis.js';
 
 describe('Handler & Message Utilities', () => {
   const sampleToken = 'c2FtcGxlX3Rva2VuX3dpdGhfNTBfY2hhcnNfZm9yX3Rlc3Rpbmc';
@@ -63,5 +70,36 @@ describe('Handler & Message Utilities', () => {
     const header = getRecipientDeliveryHeader();
     assert.ok(header.includes('یک پیام مخفی جدید داری!'));
     assert.ok(header.includes('بدون افشای هویت فرستنده'));
+  });
+  test('all inline keyboard button labels contain plain text emojis without HTML tags', () => {
+    initCustomEmojis();
+
+    const markups = [
+      getWelcomeMessage('TestBot', sampleToken).replyMarkup,
+      getSelfLinkMessage('TestBot', sampleToken).replyMarkup,
+      getRecipientDeliveryMarkup('TestBot', sampleToken),
+      getRecipientDeliveryMarkup('TestBot'),
+      getSenderSuccessMessage('TestBot', sampleToken).replyMarkup!,
+      getNoReplyGuidanceMessage('TestBot', sampleToken).replyMarkup,
+      getHelpMessage().replyMarkup,
+      getPrivacyMessage().replyMarkup
+    ];
+
+    for (const markup of markups) {
+      assert.ok(markup, 'Markup must exist');
+      for (const row of markup.inline_keyboard) {
+        for (const btn of row) {
+          assert.ok(btn.text, 'Button text must not be empty');
+          assert.ok(
+            !btn.text.includes('<tg-emoji') && !btn.text.includes('</tg-emoji>'),
+            `Button text "${btn.text}" must not contain <tg-emoji> tags`
+          );
+          assert.ok(
+            !btn.text.includes('<') && !btn.text.includes('>'),
+            `Button text "${btn.text}" must not contain HTML brackets`
+          );
+        }
+      }
+    }
   });
 });

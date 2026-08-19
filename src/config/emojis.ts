@@ -155,3 +155,11 @@ export function emoji(name: EmojiSemanticName): string {
 
   return fallback;
 }
+
+/**
+ * Renders a plain Unicode emoji for Telegram UI elements that do not support HTML markup / custom emojis
+ * (such as inline keyboard buttons, reply keyboard buttons, and callback alert popups).
+ */
+export function buttonEmoji(name: EmojiSemanticName): string {
+  return getFallbackEmoji(name);
+}

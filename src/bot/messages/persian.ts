@@ -1,4 +1,4 @@
-import { emoji } from '../../config/emojis.js';
+import { emoji, buttonEmoji } from '../../config/emojis.js';
 import { buildDeepLink, buildShareLink, escapeHtml } from '../../telegram/formatting.js';
 import { InlineKeyboardMarkup } from '../../telegram/types.js';
 
@@ -30,27 +30,27 @@ export function getWelcomeMessage(botUsername: string, token: string): {
     inline_keyboard: [
       [
         {
-          text: `${emoji('SHARE')} اشتراک‌گذاری با دوستان`,
+          text: `${buttonEmoji('SHARE')} اشتراک‌گذاری با دوستان`,
           url: shareUrl
         }
       ],
       [
         {
-          text: `${emoji('COPY')} کپی لینک اختصاصی`,
+          text: `${buttonEmoji('COPY')} کپی لینک اختصاصی`,
           callback_data: `copy_link:${token}`
         },
         {
-          text: `${emoji('REFRESH')} دریافت مجدد لینک`,
+          text: `${buttonEmoji('REFRESH')} دریافت مجدد لینک`,
           callback_data: 'refresh_link'
         }
       ],
       [
         {
-          text: `${emoji('HELP')} راهنمای استفاده`,
+          text: `${buttonEmoji('HELP')} راهنمای استفاده`,
           callback_data: 'show_help'
         },
         {
-          text: `${emoji('SHIELD')} حریم خصوصی و امنیت`,
+          text: `${buttonEmoji('SHIELD')} حریم خصوصی و امنیت`,
           callback_data: 'show_privacy'
         }
       ]
@@ -84,13 +84,13 @@ export function getSelfLinkMessage(botUsername: string, token: string): {
     inline_keyboard: [
       [
         {
-          text: `${emoji('SHARE')} اشتراک‌گذاری لینک`,
+          text: `${buttonEmoji('SHARE')} اشتراک‌گذاری لینک`,
           url: shareUrl
         }
       ],
       [
         {
-          text: `${emoji('HELP')} راهنما`,
+          text: `${buttonEmoji('HELP')} راهنما`,
           callback_data: 'show_help'
         }
       ]
@@ -152,7 +152,7 @@ export function getRecipientDeliveryMarkup(
     const replyLink = buildDeepLink(botUsername, senderReplyToken);
     buttons.push([
       {
-        text: `${emoji('REPLY')} پاسخ ناشناس به این پیام`,
+        text: `${buttonEmoji('REPLY')} پاسخ ناشناس به این پیام`,
         url: replyLink
       }
     ]);
@@ -160,7 +160,7 @@ export function getRecipientDeliveryMarkup(
 
   buttons.push([
     {
-      text: `${emoji('LINK')} دریافت لینک اختصاصی خودم`,
+      text: `${buttonEmoji('LINK')} دریافت لینک اختصاصی خودم`,
       callback_data: 'my_link'
     }
   ]);
@@ -190,11 +190,11 @@ export function getSenderSuccessMessage(botUsername: string, senderToken?: strin
       inline_keyboard: [
         [
           {
-            text: `${emoji('LINK')} دریافت لینک اختصاصی خودم`,
+            text: `${buttonEmoji('LINK')} دریافت لینک اختصاصی خودم`,
             callback_data: 'my_link'
           },
           {
-            text: `${emoji('SHARE')} اشتراک لینک من`,
+            text: `${buttonEmoji('SHARE')} اشتراک لینک من`,
             url: shareUrl
           }
         ]
@@ -253,13 +253,13 @@ export function getNoReplyGuidanceMessage(botUsername: string, userToken: string
     inline_keyboard: [
       [
         {
-          text: `${emoji('SHARE')} اشتراک لینک من`,
+          text: `${buttonEmoji('SHARE')} اشتراک لینک من`,
           url: buildShareLink(link, '🎭 برای من پیام ناشناس بفرست!')
         }
       ],
       [
         {
-          text: `${emoji('HELP')} راهنمای ربات`,
+          text: `${buttonEmoji('HELP')} راهنمای ربات`,
           callback_data: 'show_help'
         }
       ]
@@ -292,11 +292,11 @@ export function getHelpMessage(): {
     inline_keyboard: [
       [
         {
-          text: `${emoji('LINK')} لینک اختصاصی من`,
+          text: `${buttonEmoji('LINK')} لینک اختصاصی من`,
           callback_data: 'my_link'
         },
         {
-          text: `${emoji('SHIELD')} امنیت و حریم خصوصی`,
+          text: `${buttonEmoji('SHIELD')} امنیت و حریم خصوصی`,
           callback_data: 'show_privacy'
         }
       ]
@@ -330,11 +330,11 @@ export function getPrivacyMessage(): {
     inline_keyboard: [
       [
         {
-          text: `${emoji('HELP')} بازگشت به راهنما`,
+          text: `${buttonEmoji('HELP')} بازگشت به راهنما`,
           callback_data: 'show_help'
         },
         {
-          text: `${emoji('LINK')} لینک اختصاصی من`,
+          text: `${buttonEmoji('LINK')} لینک اختصاصی من`,
           callback_data: 'my_link'
         }
       ]
