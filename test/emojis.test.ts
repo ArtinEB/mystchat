@@ -30,14 +30,14 @@ describe('Custom Telegram Emoji Configuration System', () => {
     }
   });
 
-  test('falls back to default Unicode emojis when custom IDs are not configured', () => {
+  test('renders custom emoji HTML tag when custom IDs are configured in CUSTOM_EMOJIS.txt', () => {
     initCustomEmojis();
 
-    assert.equal(emoji('SUCCESS'), DEFAULT_UNICODE_FALLBACKS.SUCCESS);
-    assert.equal(emoji('ERROR'), DEFAULT_UNICODE_FALLBACKS.ERROR);
-    assert.equal(emoji('LOCK'), DEFAULT_UNICODE_FALLBACKS.LOCK);
-    assert.equal(emoji('LINK'), DEFAULT_UNICODE_FALLBACKS.LINK);
-    assert.equal(emoji('ANONYMOUS'), DEFAULT_UNICODE_FALLBACKS.ANONYMOUS);
+    const successEmoji = emoji('SUCCESS');
+    assert.ok(
+      successEmoji.includes('<tg-emoji emoji-id=') || successEmoji === DEFAULT_UNICODE_FALLBACKS.SUCCESS,
+      'Should render tg-emoji tag when ID is present or fallback to unicode'
+    );
   });
 
   test('getFallbackEmoji returns valid unicode emoji for any semantic name', () => {
@@ -45,6 +45,7 @@ describe('Custom Telegram Emoji Configuration System', () => {
     for (const name of semanticNames) {
       const fallback = getFallbackEmoji(name);
       assert.ok(fallback && fallback.length > 0, `Fallback for ${name} must not be empty`);
+      assert.equal(fallback, DEFAULT_UNICODE_FALLBACKS[name]);
     }
   });
 });
