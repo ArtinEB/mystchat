@@ -1,0 +1,83 @@
+# Custom Emoji Configuration for Hidden Message Telegram Bot
+# Replace each <CUSTOM_EMOJI_ID> with the actual Telegram Custom Emoji ID (numeric string)
+# If left as <CUSTOM_EMOJI_ID> or empty, the bot will automatically fall back to standard Unicode emojis.
+
+# Success
+SUCCESS = 5206607081334906820
+Use case: Used when an action is completed successfully (e.g., message sent successfully, link generated).
+
+# Error
+ERROR = 5210952531676504517
+Use case: Used for errors and failed operations (e.g., malformed token, server error, invalid input).
+
+# Warning
+WARNING = 5420323339723881652
+Use case: Used for warnings (e.g., user clicking their own link, replying incorrectly).
+
+# Info
+INFO = 5334544901428229844
+Use case: Used for informational messages, bot details, and feature explanations.
+
+# Anonymous / Hidden Message
+ANONYMOUS = 5452069934089641166
+Use case: Used to indicate anonymity, secrecy, and hidden message identity.
+
+# Personal Link
+LINK = 5447410659077661506
+Use case: Used for displaying the user's personal link and link buttons.
+
+# Write Message Prompt
+MESSAGE = 5443038326535759644
+Use case: Used when prompting the sender to write their hidden message.
+
+# New Inbox Notification
+INBOX = 5253742260054409879
+Use case: Used in the recipient notification when a new hidden message arrives.
+
+# Copy Action
+COPY = 5877301185639091664
+Use case: Used for copy-to-clipboard buttons and link copying notices.
+
+# Share Action
+SHARE = 5967432491684860012
+Use case: Used for sharing the personal link with friends, groups, or channels.
+
+# Help & Guide
+HELP = 5985617073978481575
+Use case: Used for the help guide button, usage instructions, and tutorials.
+
+# Lock & Encryption
+LOCK = 5296369303661067030
+Use case: Used to represent end-to-end anonymity, encryption, and data security.
+
+# Anonymous Reply
+REPLY = 5875082500023258804
+Use case: Used for the anonymous reply button allowing recipients to respond anonymously.
+
+# Send Action
+SEND = 5983391155637720267
+Use case: Used for message sending confirmation and dispatch actions.
+
+# User Profile
+USER = 5985823107854635144
+Use case: Used for personal profile, account, and recipient indicators.
+
+# Security & Shield
+SHIELD = 5931409969613116639
+Use case: Used to highlight privacy guarantees and tamper-protection features.
+
+# FAQ & Questions
+QUESTION = 5891243564309942507
+Use case: Used for frequently asked questions and how-it-works sections.
+
+# Welcome Sparkles
+SPARKLES = 5890925363067886150
+Use case: Used for welcome message headers and greetings.
+
+# Refresh / New Link
+REFRESH = 5845943483382110702
+Use case: Used for refreshing or retrieving a new link.
+
+# Blocked User
+BLOCK = 5870734657384877785
+Use case: Used when a recipient has blocked the bot or disabled private messages.
