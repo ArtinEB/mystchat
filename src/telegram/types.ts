@@ -75,6 +75,8 @@ export interface InlineKeyboardButton {
   text: string;
   url?: string;
   callback_data?: string;
+  icon_custom_emoji_id?: string;
+  style?: 'primary' | 'success' | 'danger' | string;
   switch_inline_query?: string;
   switch_inline_query_current_chat?: string;
 }

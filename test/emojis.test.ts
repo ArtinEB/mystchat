@@ -8,6 +8,7 @@ import {
   emoji,
   getFallbackEmoji,
   buttonEmoji,
+  inlineButton,
   initCustomEmojis
 } from '../src/config/emojis.js';
 
@@ -50,5 +51,13 @@ describe('Custom Telegram Emoji Configuration System', () => {
       assert.ok(!btnIcon.includes('<'), `Button emoji for ${name} must not contain HTML tags`);
       assert.equal(btnIcon, DEFAULT_UNICODE_FALLBACKS[name]);
     }
+  });
+
+  test('inlineButton sets icon_custom_emoji_id when custom emoji is registered', () => {
+    initCustomEmojis();
+    const btn = inlineButton('SHARE', 'اشتراک‌گذاری', { url: 'https://example.com' });
+    assert.equal(btn.text, 'اشتراک‌گذاری');
+    assert.ok(btn.icon_custom_emoji_id, 'icon_custom_emoji_id must be populated');
+    assert.equal(btn.url, 'https://example.com');
   });
 });

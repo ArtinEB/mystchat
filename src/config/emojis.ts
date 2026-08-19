@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { InlineKeyboardButton } from '../telegram/types.js';
 
 /**
  * All semantic names for emojis used throughout the bot UI.
@@ -158,8 +159,33 @@ export function emoji(name: EmojiSemanticName): string {
 
 /**
  * Renders a plain Unicode emoji for Telegram UI elements that do not support HTML markup / custom emojis
- * (such as inline keyboard buttons, reply keyboard buttons, and callback alert popups).
+ * (such as alert popups or legacy interfaces).
  */
 export function buttonEmoji(name: EmojiSemanticName): string {
   return getFallbackEmoji(name);
+}
+
+/**
+ * Creates an InlineKeyboardButton supporting Telegram Bot API 9.4+ (Feb 9, 2026):
+ * - If a custom emoji ID is configured, sets `icon_custom_emoji_id: id` and uses clean label text.
+ * - Otherwise, prefixes the label with the Unicode fallback emoji.
+ */
+export function inlineButton(
+  name: EmojiSemanticName,
+  text: string,
+  action: { url?: string; callback_data?: string; style?: 'primary' | 'success' | 'danger' | string }
+): InlineKeyboardButton {
+  const id = getCustomEmojiId(name);
+  if (id) {
+    return {
+      text,
+      icon_custom_emoji_id: id,
+      ...action
+    };
+  }
+
+  return {
+    text: `${getFallbackEmoji(name)} ${text}`,
+    ...action
+  };
 }

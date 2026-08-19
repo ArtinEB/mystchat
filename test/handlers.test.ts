@@ -11,7 +11,10 @@ import {
   getSenderSuccessMessage,
   getNoReplyGuidanceMessage,
   getHelpMessage,
-  getPrivacyMessage
+  getPrivacyMessage,
+  getInvalidTokenMessage,
+  getRecipientBlockedMessage,
+  getGenericErrorMessage
 } from '../src/bot/messages/persian.js';
 import { initCustomEmojis } from '../src/config/emojis.js';
 
@@ -71,7 +74,7 @@ describe('Handler & Message Utilities', () => {
     assert.ok(header.includes('یک پیام مخفی جدید داری!'));
     assert.ok(header.includes('بدون افشای هویت فرستنده'));
   });
-  test('all inline keyboard button labels contain plain text emojis without HTML tags', () => {
+  test('inline keyboard buttons have icon_custom_emoji_id set and no HTML in text', () => {
     initCustomEmojis();
 
     const markups = [
@@ -98,8 +101,61 @@ describe('Handler & Message Utilities', () => {
             !btn.text.includes('<') && !btn.text.includes('>'),
             `Button text "${btn.text}" must not contain HTML brackets`
           );
+          assert.ok(
+            btn.icon_custom_emoji_id && btn.icon_custom_emoji_id.length > 0,
+            `Button "${btn.text}" should have icon_custom_emoji_id set when custom emojis are initialized`
+          );
         }
       }
+    }
+  });
+
+  test('no single message or its buttons repeat the same emoji twice', () => {
+    initCustomEmojis();
+
+    const messages = [
+      getWelcomeMessage('TestBot', sampleToken),
+      getSelfLinkMessage('TestBot', sampleToken),
+      {
+        text: getRecipientDeliveryHeader(),
+        replyMarkup: getRecipientDeliveryMarkup('TestBot', sampleToken)
+      },
+      getSenderSuccessMessage('TestBot', sampleToken),
+      { text: getPromptSenderMessage('TestBot', sampleToken).text, replyMarkup: undefined },
+      { text: getInvalidTokenMessage(), replyMarkup: undefined },
+      { text: getRecipientBlockedMessage(), replyMarkup: undefined },
+      getNoReplyGuidanceMessage('TestBot', sampleToken),
+      getHelpMessage(),
+      getPrivacyMessage(),
+      { text: getGenericErrorMessage(), replyMarkup: undefined }
+    ];
+
+    for (const msg of messages) {
+      const emojiIds: string[] = [];
+
+      // Extract from message text:
+      const matches = msg.text.matchAll(/<tg-emoji emoji-id="(\d+)">/g);
+      for (const match of matches) {
+        emojiIds.push(match[1]);
+      }
+
+      // Extract from buttons if present:
+      if (msg.replyMarkup) {
+        for (const row of msg.replyMarkup.inline_keyboard) {
+          for (const btn of row) {
+            if (btn.icon_custom_emoji_id) {
+              emojiIds.push(btn.icon_custom_emoji_id);
+            }
+          }
+        }
+      }
+
+      const uniqueEmojiIds = new Set(emojiIds);
+      assert.equal(
+        emojiIds.length,
+        uniqueEmojiIds.size,
+        `Message contains duplicated emojis: [${emojiIds.join(', ')}] in:\n${msg.text}`
+      );
     }
   });
 });

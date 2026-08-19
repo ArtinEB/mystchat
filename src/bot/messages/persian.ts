@@ -1,4 +1,4 @@
-import { emoji, buttonEmoji } from '../../config/emojis.js';
+import { emoji, inlineButton } from '../../config/emojis.js';
 import { buildDeepLink, buildShareLink, escapeHtml } from '../../telegram/formatting.js';
 import { InlineKeyboardMarkup } from '../../telegram/types.js';
 
@@ -21,7 +21,7 @@ export function getWelcomeMessage(botUsername: string, token: string): {
     '',
     `${emoji('INFO')} هر کاربری این لینک را باز کند می‌تواند بدون اینکه هویت، نام یا یوزرنیم او فاش شود، برای شما پیام مخفی ارسال کند.`,
     '',
-    `${emoji('SHARE')} این لینک را در بیو اینستاگرام، کانال، گروه یا استوری قرار دهید تا دوستانتان برایتان پیام بفرستند.`,
+    `${emoji('SEND')} این لینک را در بیو اینستاگرام، کانال، گروه یا استوری قرار دهید تا دوستانتان برایتان پیام بفرستند.`,
     '',
     `${emoji('LOCK')} <i>تمامی پیام‌ها به صورت ۱۰۰٪ امن، ناشناس و مستقیم تحویل داده می‌شوند.</i>`
   ].join('\n');
@@ -29,30 +29,15 @@ export function getWelcomeMessage(botUsername: string, token: string): {
   const replyMarkup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
-        {
-          text: `${buttonEmoji('SHARE')} اشتراک‌گذاری با دوستان`,
-          url: shareUrl
-        }
+        inlineButton('SHARE', 'اشتراک‌گذاری با دوستان', { url: shareUrl })
       ],
       [
-        {
-          text: `${buttonEmoji('COPY')} کپی لینک اختصاصی`,
-          callback_data: `copy_link:${token}`
-        },
-        {
-          text: `${buttonEmoji('REFRESH')} دریافت مجدد لینک`,
-          callback_data: 'refresh_link'
-        }
+        inlineButton('COPY', 'کپی لینک اختصاصی', { callback_data: `copy_link:${token}` }),
+        inlineButton('REFRESH', 'دریافت مجدد لینک', { callback_data: 'refresh_link' })
       ],
       [
-        {
-          text: `${buttonEmoji('HELP')} راهنمای استفاده`,
-          callback_data: 'show_help'
-        },
-        {
-          text: `${buttonEmoji('SHIELD')} حریم خصوصی و امنیت`,
-          callback_data: 'show_privacy'
-        }
+        inlineButton('HELP', 'راهنمای استفاده', { callback_data: 'show_help' }),
+        inlineButton('SHIELD', 'حریم خصوصی و امنیت', { callback_data: 'show_privacy' })
       ]
     ]
   };
@@ -83,16 +68,10 @@ export function getSelfLinkMessage(botUsername: string, token: string): {
   const replyMarkup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
-        {
-          text: `${buttonEmoji('SHARE')} اشتراک‌گذاری لینک`,
-          url: shareUrl
-        }
+        inlineButton('SHARE', 'اشتراک‌گذاری لینک', { url: shareUrl })
       ],
       [
-        {
-          text: `${buttonEmoji('HELP')} راهنما`,
-          callback_data: 'show_help'
-        }
+        inlineButton('HELP', 'راهنما', { callback_data: 'show_help' })
       ]
     ]
   };
@@ -151,18 +130,12 @@ export function getRecipientDeliveryMarkup(
   if (senderReplyToken) {
     const replyLink = buildDeepLink(botUsername, senderReplyToken);
     buttons.push([
-      {
-        text: `${buttonEmoji('REPLY')} پاسخ ناشناس به این پیام`,
-        url: replyLink
-      }
+      inlineButton('REPLY', 'پاسخ ناشناس به این پیام', { url: replyLink })
     ]);
   }
 
   buttons.push([
-    {
-      text: `${buttonEmoji('LINK')} دریافت لینک اختصاصی خودم`,
-      callback_data: 'my_link'
-    }
+    inlineButton('LINK', 'دریافت لینک اختصاصی خودم', { callback_data: 'my_link' })
   ]);
 
   return { inline_keyboard: buttons };
@@ -189,14 +162,8 @@ export function getSenderSuccessMessage(botUsername: string, senderToken?: strin
     replyMarkup = {
       inline_keyboard: [
         [
-          {
-            text: `${buttonEmoji('LINK')} دریافت لینک اختصاصی خودم`,
-            callback_data: 'my_link'
-          },
-          {
-            text: `${buttonEmoji('SHARE')} اشتراک لینک من`,
-            url: shareUrl
-          }
+          inlineButton('LINK', 'دریافت لینک اختصاصی خودم', { callback_data: 'my_link' }),
+          inlineButton('SHARE', 'اشتراک لینک من', { url: shareUrl })
         ]
       ]
     };
@@ -252,16 +219,12 @@ export function getNoReplyGuidanceMessage(botUsername: string, userToken: string
   const replyMarkup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
-        {
-          text: `${buttonEmoji('SHARE')} اشتراک لینک من`,
+        inlineButton('SHARE', 'اشتراک لینک من', {
           url: buildShareLink(link, '🎭 برای من پیام ناشناس بفرست!')
-        }
+        })
       ],
       [
-        {
-          text: `${buttonEmoji('HELP')} راهنمای ربات`,
-          callback_data: 'show_help'
-        }
+        inlineButton('HELP', 'راهنمای ربات', { callback_data: 'show_help' })
       ]
     ]
   };
@@ -291,14 +254,8 @@ export function getHelpMessage(): {
   const replyMarkup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
-        {
-          text: `${buttonEmoji('LINK')} لینک اختصاصی من`,
-          callback_data: 'my_link'
-        },
-        {
-          text: `${buttonEmoji('SHIELD')} امنیت و حریم خصوصی`,
-          callback_data: 'show_privacy'
-        }
+        inlineButton('LINK', 'لینک اختصاصی من', { callback_data: 'my_link' }),
+        inlineButton('SHIELD', 'امنیت و حریم خصوصی', { callback_data: 'show_privacy' })
       ]
     ]
   };
@@ -316,7 +273,7 @@ export function getPrivacyMessage(): {
   const text = [
     `${emoji('SHIELD')} <b>امنیت و حریم خصوصی ربات:</b>`,
     '',
-    `${emoji('LOCK')} <b>ساختار کاملاً بدون دیتابیس (Stateless):</b>`,
+    `${emoji('SPARKLES')} <b>ساختار کاملاً بدون دیتابیس (Stateless):</b>`,
     `این ربات بر روی سرورهای ابری سرورلس اجرا می‌شود و هیچ‌گونه دیتابیس یا ذخیره‌سازی محلی ندارد. پیام‌های شما بلافاصله پس از ارسال از حافظه حذف می‌شوند.`,
     '',
     `${emoji('ANONYMOUS')} <b>ناشناسی ۱۰۰٪:</b>`,
@@ -329,14 +286,8 @@ export function getPrivacyMessage(): {
   const replyMarkup: InlineKeyboardMarkup = {
     inline_keyboard: [
       [
-        {
-          text: `${buttonEmoji('HELP')} بازگشت به راهنما`,
-          callback_data: 'show_help'
-        },
-        {
-          text: `${buttonEmoji('LINK')} لینک اختصاصی من`,
-          callback_data: 'my_link'
-        }
+        inlineButton('HELP', 'بازگشت به راهنما', { callback_data: 'show_help' }),
+        inlineButton('LINK', 'لینک اختصاصی من', { callback_data: 'my_link' })
       ]
     ]
   };
