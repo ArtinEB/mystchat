@@ -7,6 +7,7 @@ export interface AppConfig {
   telegramBotUsername: string;
   botSecret: string;
   webhookSecret?: string;
+  adminUserIds: number[];
 }
 
 let cachedConfig: AppConfig | null = null;
@@ -20,6 +21,13 @@ export function getAppConfig(): AppConfig {
   const telegramBotUsername = process.env.TELEGRAM_BOT_USERNAME?.replace(/^@/, '');
   const botSecret = process.env.BOT_SECRET;
   const webhookSecret = process.env.WEBHOOK_SECRET;
+
+  const rawAdminIds = process.env.ADMIN_USER_IDS || process.env.ADMIN_USER_ID || '';
+  const adminUserIds = rawAdminIds
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => /^\d+$/.test(s))
+    .map((s) => Number(s));
 
   if (!telegramBotToken) {
     throw new Error('Missing required environment variable: TELEGRAM_BOT_TOKEN');
@@ -41,7 +49,8 @@ export function getAppConfig(): AppConfig {
     telegramBotToken,
     telegramBotUsername,
     botSecret,
-    webhookSecret
+    webhookSecret,
+    adminUserIds
   };
 
   return cachedConfig;

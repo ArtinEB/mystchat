@@ -15,7 +15,7 @@ WARNING = 5420323339723881652
 Use case: Used for warnings (e.g., user clicking their own link, replying incorrectly).
 
 # Info
-INFO = 5886440807325504167
+INFO = 5879841310902324730
 Use case: Used for informational messages, bot details, and feature explanations.
 
 # Anonymous / Hidden Message

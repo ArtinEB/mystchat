@@ -9,6 +9,7 @@ import {
   getHelpMessage,
   getPrivacyMessage
 } from '../messages/persian.js';
+import { handleAdminCallbackQuery } from './admin.js';
 
 export async function handleCallbackQuery(
   query: CallbackQuery,
@@ -20,6 +21,11 @@ export async function handleCallbackQuery(
   const chatId = query.message?.chat.id || userId;
 
   try {
+    if (data.startsWith('admin_')) {
+      await handleAdminCallbackQuery(query, client, config);
+      return;
+    }
+
     if (data.startsWith('copy_link:')) {
       const token = data.replace('copy_link:', '');
       const link = buildDeepLink(config.telegramBotUsername, token);

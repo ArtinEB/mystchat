@@ -302,3 +302,75 @@ export function getGenericErrorMessage(): string {
     'لطفاً چند لحظه دیگر مجدداً تلاش نمایید.'
   ].join('\n');
 }
+
+/**
+ * Formats uptime seconds into a readable Persian string.
+ */
+function formatUptime(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  const parts: string[] = [];
+  if (hours > 0) parts.push(`${hours} ساعت`);
+  if (minutes > 0) parts.push(`${minutes} دقیقه`);
+  if (parts.length === 0 || secs > 0) parts.push(`${secs} ثانیه`);
+  return parts.join(' و ');
+}
+
+/**
+ * Generates the Admin Dashboard message with bot metrics.
+ */
+export function getAdminPanelMessage(stats: {
+  totalUsers: number;
+  totalMessagesSent: number;
+  uptimeSeconds: number;
+}): {
+  text: string;
+  replyMarkup: InlineKeyboardMarkup;
+} {
+  const text = [
+    `👑 <b>پنل مدیریت ربات MystChat</b>`,
+    '',
+    `📊 <b>آمار و وضعیت سیستم:</b>`,
+    `${emoji('USER')} <b>کاربران فعال:</b> ${stats.totalUsers} کاربر`,
+    `${emoji('MESSAGE')} <b>پیام‌های مبادله‌شده:</b> ${stats.totalMessagesSent} پیام`,
+    `⏱️ <b>مدت زمان آنلاین:</b> ${formatUptime(stats.uptimeSeconds)}`,
+    '',
+    `📢 <b>راهنمای ارسال همگانی (Broadcast):</b>`,
+    `برای ارسال پیام به تمام کاربران، متن خود را با دستور زیر ارسال کنید:`,
+    `<code>/broadcast متن پیام شما</code>`,
+    '',
+    `<i>(همچنین می‌توانید یک عکس، ویدیو، وویس یا متن را برای ربات بفرستید و در پاسخ به آن دستور /broadcast را بنویسید)</i>`
+  ].join('\n');
+
+  const replyMarkup: InlineKeyboardMarkup = {
+    inline_keyboard: [
+      [
+        inlineButton('REFRESH', 'بروزرسانی آمار', { callback_data: 'admin_refresh_stats' }),
+        inlineButton('LINK', 'لینک من', { callback_data: 'my_link' })
+      ]
+    ]
+  };
+
+  return { text, replyMarkup };
+}
+
+/**
+ * Generates the broadcast execution result summary.
+ */
+export function getBroadcastSummaryMessage(
+  total: number,
+  successful: number,
+  blocked: number,
+  failed: number
+): string {
+  return [
+    `📢 <b>گزارش ارسال همگانی (Broadcast):</b>`,
+    '',
+    `${emoji('USER')} <b>کل کاربران هدف:</b> ${total}`,
+    `${emoji('SUCCESS')} <b>ارسال موفق:</b> ${successful}`,
+    `${emoji('BLOCK')} <b>کاربران مسدود / بلاک:</b> ${blocked}`,
+    `${emoji('WARNING')} <b>خطاهای متفرقه:</b> ${failed}`
+  ].join('\n');
+}

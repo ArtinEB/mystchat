@@ -14,6 +14,7 @@ import {
   getSelfLinkMessage,
   getGenericErrorMessage
 } from '../messages/persian.js';
+import { UserStore } from '../../storage/userStore.js';
 
 /**
  * Extracts encrypted token from a message's text, entities, or links.
@@ -128,6 +129,10 @@ export async function handleIncomingMessage(
     await client.sendMessage(chatId, successText, {
       reply_markup: successMarkup
     });
+
+    const userStore = UserStore.getInstance();
+    userStore.trackUser(recipientId).catch(() => {});
+    userStore.recordMessageSent().catch(() => {});
 
     logger.info('Anonymous message delivered successfully');
   } catch (error) {
